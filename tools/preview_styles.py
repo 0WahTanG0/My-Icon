@@ -14,6 +14,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, str(Path(__file__).parent))
 import styles  # noqa: E402
+import styles2  # noqa: E402
+
+REG = {**styles.STYLES, **styles2.STYLES}
 
 ROOT = Path(__file__).resolve().parent.parent
 SAMPLES = [
@@ -44,9 +47,10 @@ def sheet(keys, svgs, out):
     fh = ImageFont.truetype(FONT_B, 30)
     fl = ImageFont.truetype(FONT, 17)
     for r, key in enumerate(keys):
-        title, fn = styles.STYLES[key]
+        title, fn = REG[key]
         y0 = pad + r * rowh
-        idx = list(styles.STYLES).index(key) + 1
+        group = styles.STYLES if key in styles.STYLES else styles2.STYLES
+        idx = list(group).index(key) + 1
         d.text((pad, y0 + 8), f"{idx}. {title}", font=fh, fill=(235, 235, 235))
         t0 = time.time()
         for i, (label, name) in enumerate(SAMPLES):
@@ -63,7 +67,7 @@ def sheet(keys, svgs, out):
 def main():
     svgs = Path(sys.argv[1])
     prefix = sys.argv[2]
-    keys = sys.argv[3:] or list(styles.STYLES)
+    keys = sys.argv[3:] or list(styles2.STYLES)
     if len(sys.argv) > 3:
         sheet(keys, svgs, f"{prefix}.png")
     else:
