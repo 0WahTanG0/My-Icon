@@ -1,0 +1,11 @@
+My-Icon icon pack
+
+Monochrome glyphs are derived from Lawnicons
+(https://github.com/LawnchairLauncher/lawnicons), Copyright Lawnchair Launcher
+contributors, licensed under the Apache License, Version 2.0
+(http://www.apache.org/licenses/LICENSE-2.0).
+The glyphs are rasterised and re-rendered by tools/iconstyle.py
+(new tile, frame, lighting and shadows).
+
+App names and logo shapes are trademarks of their respective owners and are
+used only to identify the apps they open.
