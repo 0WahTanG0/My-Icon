@@ -60,11 +60,12 @@ def main():
     calendars = []                 # calendar entries
     missing = []
 
-    def add(cat, drawable):
-        if drawable in seen_drawables:
+    def add(cat, drawable, always=False):
+        if drawable in seen_drawables and not always:
             return
         seen_drawables.add(drawable)
-        selection.setdefault(cat, []).append(drawable)
+        if drawable not in selection.setdefault(cat, []):
+            selection[cat].append(drawable)
 
     for cat, lines in cats.items():
         for line in lines:
@@ -75,10 +76,11 @@ def main():
                 add(cat, line[len("drawable:"):])
                 continue
             elif line.startswith("map:"):
-                comp, drawable = line[len("map:"):].split("=")
-                pkg, act = comp.split("/")
-                own_maps.append((pkg, act, drawable, ""))
-                add(cat, drawable)
+                comp, target = line[len("map:"):].split("=", 1)
+                drawable, _, label = target.partition("|")
+                pkg, act = comp.split("/", 1)
+                own_maps.append((pkg, act, drawable.strip(), label.strip()))
+                add(cat, drawable.strip(), always=True)
                 continue
             else:
                 pk = [line]
@@ -125,15 +127,20 @@ def main():
     for pkg, act, drawable, name in calendars:
         lines.append(f'  <calendar component="ComponentInfo{{{pkg}/{act}}}" '
                      f'prefix="themed_icon_calendar_" name={quoteattr(name)} />')
+    used = set()
     for pkg, act, drawable, name in own_maps + items:
+        if (pkg, act) in used:   # own mappings win over Lawnicons ones
+            continue
+        used.add((pkg, act))
         lines.append(f'  <item component="ComponentInfo{{{pkg}/{act}}}" '
                      f'drawable="{drawable}" name={quoteattr(name)} />')
     lines.append("</resources>")
     (out / "appfilter.xml").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     names = {}
-    for pkg, act, drawable, name in items:
-        names.setdefault(drawable, name)
+    for pkg, act, drawable, name in items + own_maps:
+        if name:
+            names.setdefault(drawable, name)
     sel = {"lawnicons_commit": rev,
            "categories": [{"title": c, "drawables": sorted(ds, key=lambda d: (names.get(d, d).lower(), d))}
                           for c, ds in selection.items()],

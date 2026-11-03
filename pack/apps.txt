@@ -4,7 +4,7 @@
 #   com.example.app       every Lawnicons appfilter entry of this package
 #   prefix:com.samsung.   every Lawnicons entry whose package starts with it
 #   drawable:name         include a Lawnicons drawable as is (picker only)
-#   map:pkg/activity=drawable   own appfilter entry (drawable from Lawnicons or pack/glyphs)
+#   map:pkg/activity=drawable[|Name]   own appfilter entry (Lawnicons or pack/glyphs drawable)
 #
 # tools/vendor_lawnicons.py turns this into third_party/lawnicons/.
 
@@ -230,3 +230,44 @@ com.activision.callofduty.shooter
 com.innersloth.spacemafia
 com.nianticlabs.pokemongo
 com.chess
+
+# v2: apps from the owner's phone (exact components from "Скопировать список моих приложений")
+[Мои приложения]
+map:app.grafiksmen/app.grafiksmen.MainActivity=work_shift_calendar|График смен
+map:com.carshering/ru.delimobil.main.ui.MainActivity=delimobil|Делимобиль
+map:lc.deck.tattelecom/lc.deck.tattelecom.ui.AppActivity=letai|Летай 2.0
+map:com.gnivts.selfemployed/com.crpt.samoz.samozan.new_arch.MainActivity=moy_nalog|Мой Налог
+map:com.yandex.iot/com.yandex.iot.activity.presentation.IotLauncherActivity=home_with_alice|Умный Дом
+map:ru.cupis.wallet/ru.cupis.newwallet.presentation.activity.CupisMainActivity=cupis|ЦУПИС
+map:com.yandex.tasks.androidapp/com.yandex.toloka.androidapp.splash.SplashScreenActivity=yandex_tasks|Яндекс Задания
+map:tz.co.wadau.allpdf/tz.co.wadau.allpdf.LaunchScreenActivity=generic_pdf_file|All PDF
+map:com.authenticator.app.starnest/com.starnest.authenticator.ui.main.activity.SplashActivity=secure_file_manager|Authenticator
+map:ru.auto.ara/ru.auto.ara.SplashActivity=auto_ru|Auto.ru
+map:com.logistic.sdek/com.logistic.sdek.v2.modules.splash.ui.SplashV2Activity=cdek|CDEK
+map:com.energo.rnapp/com.energo.rnapp.MainActivity=energo|EnerGO
+map:org.fdroid.fdroid/org.fdroid.IconActivity=f_droid|F-Droid
+map:com.github.android/com.github.android.main.MainActivity=github|GitHub
+map:com.mahmoudzadah.app.glassifydark/com.app.dashboard.glassify.SplashActivity=glassify|Glassify Dark
+map:app.hiddify.com/com.hiddify.hiddify.MainActivity=hiddify|Hiddify
+map:com.wuliang.xapkinstaller/com.wuliang.xapkinstaller.ui.splash.SplashActivity=generic_files|Material Files
+map:com.chaos.notchtouch/com.chaos.notchtouch.SplashActivity=touch_the_notch|Notch-Touch
+map:com.scee.psxandroid/com.scee.psxandroid.activity.TopActivity=playstation_ps|PS App
+map:com.hybridparking.game/com.unity3d.player.UnityPlayerActivity=roadside_empire|Roadside Empire
+map:ru.kfc.kfc_delivery/ru.kfc.kfc_delivery.MainActivity=rostics|Rostic's
+map:app.synctheme/app.synctheme.mobile.ui.MainActivity=synctheme|SyncTheme
+map:com.amurcanov.tgwsproxy/com.amurcanov.tgwsproxy.MainActivity=tg_ws_proxy|Telegram WS Proxy
+map:com.server.auditor.ssh.client/com.server.auditor.ssh.client.navigation.MainActivity=termius|Termius
+map:com.vpnadmin.app/com.vpnadmin.app.MainActivity=vpn_admin|VPN админ
+map:app.rvx.android.youtube/com.google.android.youtube.app.honeycomb.Shell$HomeActivity=revanced_extended|YouTube ReVanced Extended
+map:mobi.zona/ru.zona.app.android.MainActivity=zona|Zona
+# other activities of the same apps, as Lawnicons knows them
+com.yandex.iot
+ru.auto.ara
+org.fdroid.fdroid
+com.github.android
+app.hiddify.com
+com.scee.psxandroid
+ru.kfc.kfc_delivery
+com.server.auditor.ssh.client
+app.rvx.android.youtube
+mobi.zona

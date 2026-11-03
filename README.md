@@ -7,6 +7,11 @@
 
 ![v1](preview/v1_overview.png)
 
+Версия 2 — иконки для всех приложений с телефона владельца
+(12 нарисованы заново, `tools/make_glyphs.py`):
+
+![v2](preview/v2_my_apps.png)
+
 ## Как применить
 
 * **Samsung:** Theme Park → «Значки» → создать новый набор из пакета значков My-Icon → применить.
@@ -28,7 +33,7 @@
 | `tools/iconstyle.py` | рендер стиля: карта высот (рамка + блюдце + значок), свет, тени. Python + Pillow + NumPy |
 | `pack/apps.txt` | какие приложения входят в пак (пакеты, префиксы, свои соответствия) |
 | `tools/vendor_lawnicons.py` | берёт нужные SVG и записи appfilter из Lawnicons → `third_party/lawnicons`, `pack/selection.json` |
-| `pack/glyphs/*.svg` | свои значки (192×192, линия 12) для того, чего нет в Lawnicons |
+| `pack/glyphs/*.svg` | свои значки (192×192, линия 12) для того, чего нет в Lawnicons; генерирует `tools/make_glyphs.py` |
 | `tools/build_pack.py` | рисует все PNG 256×256 и генерирует `appfilter.xml`, `drawable.xml`, иконку приложения |
 | `android/` | приложение пака (Java, без зависимостей) |
 | `.github/workflows/build.yml` | сборка подписанного APK и публикация в Releases |
