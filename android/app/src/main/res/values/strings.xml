@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">My-Icon</string>
+    <string name="subtitle">Графитовый icon pack</string>
+    <string name="stats">Иконок в паке: %1$d\nВаших приложений с иконкой: %2$d из %3$d</string>
+    <string name="stats_loading">Считаю ваши приложения…</string>
+    <string name="copy_missing">Скопировать список моих приложений</string>
+    <string name="share_missing">Отправить список…</string>
+    <string name="include_all">Включая приложения, у которых иконка уже есть</string>
+    <string name="copied">Скопировано: %1$d приложений. Вставьте список в чат.</string>
+    <string name="share_title">Список приложений для My-Icon</string>
+    <string name="apply_header">Как применить</string>
+    <string name="apply_text">Samsung: откройте Theme Park → «Значки» → создайте новый набор из пакета значков My-Icon и примените его.\nNova: Настройки → Внешний вид → Стиль значков → Тема значков → My-Icon.\nLawnchair: Настройки → Общие → Пакет значков → My-Icon.</string>
+    <string name="open_theme_park">Открыть Theme Park</string>
+    <string name="apply_nova">Применить в Nova</string>
+    <string name="icons_header">Все иконки</string>
+    <string name="pick_title">Выберите иконку</string>
+    <string name="not_found">Не удалось открыть приложение</string>
+</resources>

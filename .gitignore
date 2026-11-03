@@ -2,3 +2,9 @@ __pycache__/
 *.pyc
 /build/
 /work/
+android/.gradle/
+android/build/
+android/app/build/
+android/app/src/generated/
+android/local.properties
+/dist/

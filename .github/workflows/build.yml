@@ -1,0 +1,105 @@
+name: Build icon pack APK
+
+on:
+  push:
+    branches: [ccr-1ed4b1b2-a3fwpi, main]
+    paths-ignore:
+      - "**.md"
+      - "preview/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Python deps
+        run: |
+          python -m pip install -r requirements.txt
+          python -c "import cairosvg" || (sudo apt-get update && sudo apt-get install -y --no-install-recommends libcairo2)
+
+      - name: Render icons and pack resources (Python + Pillow)
+        run: python tools/build_pack.py --jobs 4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Signing key from secrets (optional, otherwise signing/release.jks)
+        env:
+          KEYSTORE_B64: ${{ secrets.SIGNING_KEYSTORE_B64 }}
+          STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            {
+              echo "SIGNING_STORE_FILE=$RUNNER_TEMP/release.jks"
+              echo "SIGNING_STORE_PASSWORD=$STORE_PASSWORD"
+              echo "SIGNING_KEY_ALIAS=$KEY_ALIAS"
+              echo "SIGNING_KEY_PASSWORD=$KEY_PASSWORD"
+            } >> "$GITHUB_ENV"
+            echo "using keystore from secrets"
+          else
+            echo "using signing/release.jks from the repository"
+          fi
+
+      - name: Build signed APK
+        working-directory: android
+        run: ./gradlew --no-daemon assembleRelease
+
+      - name: Verify signature
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" verify --print-certs "$APK"
+          mkdir -p dist && cp "$APK" dist/My-Icon.apk
+          ls -la dist
+
+      - name: Read version
+        id: ver
+        run: |
+          echo "name=$(grep '^versionName=' version.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+          echo "code=$(grep '^versionCode=' version.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+          echo "icons=$(ls android/app/src/generated/res/drawable-nodpi/*.png | wc -l)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: My-Icon-v${{ steps.ver.outputs.name }}
+          path: dist/My-Icon.apk
+
+      - name: Publish release
+        if: github.ref == 'refs/heads/ccr-1ed4b1b2-a3fwpi' || github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.name }}
+          target_commitish: ${{ github.sha }}
+          name: My-Icon v${{ steps.ver.outputs.name }}
+          make_latest: true
+          files: dist/My-Icon.apk
+          body: |
+            Графитовый icon pack: ${{ steps.ver.outputs.icons }} картинок (иконки + iconback/iconupon/iconmask).
+
+            **Скачать:** [My-Icon.apk](https://github.com/${{ github.repository }}/releases/download/v${{ steps.ver.outputs.name }}/My-Icon.apk)
+            (всегда последняя версия: https://github.com/${{ github.repository }}/releases/latest/download/My-Icon.apk)
+
+            Версия ${{ steps.ver.outputs.name }} (code ${{ steps.ver.outputs.code }}), сборка из ${{ github.sha }}.
+            Значки — Lawnicons (Apache-2.0), стиль отрисован скриптом `tools/iconstyle.py`.

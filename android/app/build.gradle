@@ -1,0 +1,62 @@
+plugins {
+    id 'com.android.application'
+}
+
+def rootDir2 = file('../..')
+def versionProps = new Properties()
+new File(rootDir2, 'version.properties').withInputStream { versionProps.load(it) }
+
+// Signing: environment (GitHub secrets) wins, otherwise the keystore in signing/.
+def signingProps = new Properties()
+def signingPropsFile = new File(rootDir2, 'signing/keystore.properties')
+if (signingPropsFile.exists()) signingPropsFile.withInputStream { signingProps.load(it) }
+def sign = { String env, String key -> System.getenv(env) ?: signingProps.getProperty(key) }
+
+android {
+    namespace 'com.myicon.graphite'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.myicon.graphite'
+        minSdk 21
+        targetSdk 35
+        versionCode versionProps.getProperty('versionCode') as int
+        versionName versionProps.getProperty('versionName')
+    }
+
+    signingConfigs {
+        release {
+            def store = sign('SIGNING_STORE_FILE', 'storeFile')
+            storeFile store ? (new File(store).isAbsolute() ? new File(store) : new File(rootDir2, store)) : null
+            storePassword sign('SIGNING_STORE_PASSWORD', 'storePassword')
+            keyAlias sign('SIGNING_KEY_ALIAS', 'keyAlias')
+            keyPassword sign('SIGNING_KEY_PASSWORD', 'keyPassword')
+        }
+    }
+
+    buildTypes {
+        release {
+            // icons are looked up by name, so no code/resource shrinking
+            minifyEnabled false
+            shrinkResources false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    sourceSets {
+        main {
+            res.srcDirs += 'src/generated/res'
+            assets.srcDirs += 'src/generated/assets'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}

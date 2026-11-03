@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- to list the launcher apps of the phone ("copy my apps") and find launchers -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <package android:name="com.samsung.android.themedesigner" />
+        <package android:name="com.teslacoilsw.launcher" />
+        <package android:name="app.lawnchair" />
+    </queries>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- icon pack discovery: Nova, Lawnchair, ADW, Apex, Action, Go, Atom, Smart... -->
+            <intent-filter>
+                <action android:name="com.novalauncher.THEME" />
+                <action android:name="org.adw.launcher.THEMES" />
+                <action android:name="org.adw.ActivityStarter.THEMES" />
+                <action android:name="com.gau.go.launcherex.theme" />
+                <action android:name="com.anddoes.launcher.THEME" />
+                <action android:name="com.teslacoilsw.launcher.THEME" />
+                <action android:name="com.dlto.atom.launcher.THEME" />
+                <action android:name="com.fede.launcher.THEME_ICONPACK" />
+                <action android:name="ginlemon.smartlauncher.THEMES" />
+                <action android:name="com.lge.launcher2.THEME" />
+                <action android:name="com.sonymobile.home.ICON_PACK" />
+                <action android:name="home.solo.launcher.free.THEMES" />
+                <action android:name="com.tsf.shell.themes" />
+                <action android:name="ch.deletescape.lawnchair.ICONPACK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.anddoes.launcher.THEME" />
+                <category android:name="com.teslacoilsw.launcher.THEME" />
+                <category android:name="com.fede.launcher.THEME_ICONPACK" />
+            </intent-filter>
+
+            <!-- pick a single icon from the pack -->
+            <intent-filter>
+                <action android:name="org.adw.launcher.icons.ACTION_PICK_ICON" />
+                <action android:name="com.novalauncher.THEME.PICK_ICON" />
+                <action android:name="net.oneplus.launcher.icons.ACTION_PICK_ICON" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

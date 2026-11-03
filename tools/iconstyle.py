@@ -109,6 +109,25 @@ def _scale_strokes(svg: str, k: float) -> str:
     return svg
 
 
+def _root_defaults(svg: str) -> str:
+    """Add inherited defaults to the root <svg> unless it sets them itself.
+
+    SVG's default miter limit is 4 but cairo uses 10, which produces spikes
+    on sharp joins; round joins also suit the domed glyph look.
+    """
+    m = re.search(r"<svg\b[^>]*>", svg)
+    if not m:
+        return svg
+    tag = m.group(0)
+    extra = ""
+    for attr, val in (("stroke-miterlimit", "4"), ("stroke-linejoin", "round")):
+        if f"{attr}=" not in tag and f"{attr}:" not in tag:
+            extra += f' {attr}="{val}"'
+    if not extra:
+        return svg
+    return svg[:m.start()] + "<svg" + extra + tag[4:] + svg[m.end():]
+
+
 def _place(alpha: np.ndarray, style: Style, size: int) -> np.ndarray:
     box = alpha.shape[0]
     canvas = np.zeros((size, size))
@@ -121,8 +140,7 @@ def glyph_from_svg(svg_text: str, style: Style = STYLE, size: int = WORK) -> np.
     import cairosvg
 
     svg_text = _scale_strokes(svg_text, style.glyph_stroke_scale)
-    # SVG default miter limit is 4 (cairo uses 10 -> spikes on sharp joins)
-    svg_text = svg_text.replace("<svg ", '<svg stroke-miterlimit="4" stroke-linejoin="round" ', 1)
+    svg_text = _root_defaults(svg_text)
     box = int(round(style.glyph_box * size))
     png = cairosvg.svg2png(bytestring=svg_text.encode(), output_width=box,
                            output_height=box)
@@ -251,10 +269,16 @@ class Renderer:
         return finish(self.compose(glyph), out_size)
 
     def mask(self, out_size: int = 256) -> Image.Image:
-        """iconmask: opaque where the original app icon must be erased."""
+        """iconmask: opaque where the original app icon must be erased.
+
+        Launchers apply it with DST_OUT; some apply it to the whole composed
+        icon (back included), so it only cuts what lies outside the tile and
+        never touches the frame.  The scale factor keeps app icons inside the
+        saucer anyway.
+        """
         S = self.S
         img = np.zeros((S, S, 4))
-        img[..., 3] = (1 - _blur(self.floor_cov, 2)) * 255
+        img[..., 3] = (1 - self.tile_cov) * 255
         return finish(img, out_size)
 
     def upon(self, out_size: int = 256) -> Image.Image:
