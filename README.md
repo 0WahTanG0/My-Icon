@@ -12,6 +12,15 @@
 
 ![v2](preview/v2_my_apps.png)
 
+### My-Icon Noir (отдельный пак)
+
+Толстая чёрная матовая плита, значок вырезан насквозь: обои видны сквозь вырезы,
+вложенные детали (трубка WhatsApp, центр шестерёнки) выпуклые чёрные, вокруг
+гравированная линия. Стиль: `tools/style_noir.py`. Приложение `com.myicon.noir`
+ставится рядом с графитовым.
+
+![noir](preview/noir_v1.png)
+
 ## Как применить
 
 * **Samsung:** Theme Park → «Значки» → создать новый набор из пакета значков My-Icon → применить.
@@ -34,17 +43,18 @@
 | `pack/apps.txt` | какие приложения входят в пак (пакеты, префиксы, свои соответствия) |
 | `tools/vendor_lawnicons.py` | берёт нужные SVG и записи appfilter из Lawnicons → `third_party/lawnicons`, `pack/selection.json` |
 | `pack/glyphs/*.svg` | свои значки (192×192, линия 12) для того, чего нет в Lawnicons; генерирует `tools/make_glyphs.py` |
-| `tools/build_pack.py` | рисует все PNG 256×256 и генерирует `appfilter.xml`, `drawable.xml`, иконку приложения |
+| `tools/build_pack.py` | рисует все PNG 256×256 и генерирует `appfilter.xml`, `drawable.xml`, иконку приложения; `--pack graphite\|noir` |
 | `android/` | приложение пака (Java, без зависимостей) |
 | `.github/workflows/build.yml` | сборка подписанного APK и публикация в Releases |
-| `version.properties` | версия; новая `versionName` = новый релиз `v<versionName>` |
+| `version.properties` | версии паков: `graphite.*` → релиз `v<версия>`, `noir.*` → релиз `noir-v<версия>` |
 
 Сборка вручную:
 
 ```
 pip install -r requirements.txt
-python tools/build_pack.py
-cd android && ./gradlew assembleRelease
+python tools/build_pack.py --pack graphite
+python tools/build_pack.py --pack noir
+cd android && ./gradlew assembleGraphiteRelease assembleNoirRelease
 ```
 
 Добавить приложения: дописать пакеты в `pack/apps.txt`, затем

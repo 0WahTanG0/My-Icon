@@ -1,6 +1,10 @@
-"""Generate all icon pack resources for the Android app.
+"""Generate all icon pack resources for one pack (Android product flavor).
 
-usage: python tools/build_pack.py [--out android/app/src/generated] [--size 256] [--jobs N]
+usage: python tools/build_pack.py [--pack graphite|noir] [--size 256] [--jobs N]
+
+Packs share the app list and glyphs and differ in style, app id and output dir:
+  graphite  tools/iconstyle.py  com.myicon.graphite  android/app/src/generated
+  noir      tools/style_noir.py com.myicon.noir      android/app/src/generated-noir
 
 Reads  pack/selection.json, third_party/lawnicons/{svgs,appfilter.xml}, pack/glyphs/*.svg
 Writes <out>/res/drawable-nodpi/*.png      icons + iconback/iconupon/iconmask
@@ -28,10 +32,15 @@ ROOT = Path(__file__).resolve().parent.parent
 LAWN = ROOT / "third_party/lawnicons"
 GLYPHS = ROOT / "pack/glyphs"
 
-APP_ID = "com.myicon.graphite"
-OWN_COMPONENT = f"{APP_ID}/{APP_ID}.MainActivity"
 OWN_DRAWABLE = "my_icon_pack"
-ICON_SCALE = 0.58   # size of unthemed app icons inside the saucer
+ACTIVITY = "com.myicon.graphite.MainActivity"   # Java namespace is shared by all flavors
+PACKS = {
+    # scale: size of unthemed app icons inside the frame
+    "graphite": dict(app_id="com.myicon.graphite", out="android/app/src/generated", scale=0.58,
+                     label="My-Icon", launcher_bg="#242424"),
+    "noir": dict(app_id="com.myicon.noir", out="android/app/src/generated-noir", scale=0.56,
+                 label="My-Icon Noir", launcher_bg="#1B1B1B"),
+}
 
 _renderer = None
 
@@ -39,6 +48,26 @@ _renderer = None
 def _init():
     global _renderer
     _renderer = iconstyle.Renderer()
+
+
+def render_icon(pack: str, name: str, size: int):
+    """One themed icon as a PIL RGBA image."""
+    if pack == "noir":
+        import style_noir
+        return style_noir.noir(glyph_svg(name), name, size)
+    global _renderer
+    if _renderer is None:
+        _init()
+    return iconstyle.finish(_renderer.compose(iconstyle.glyph_from_svg(glyph_svg(name))), size)
+
+
+def frame_layers(pack: str, size: int):
+    """iconback, iconupon, iconmask for apps the pack has no icon for."""
+    if pack == "noir":
+        import style_noir
+        return style_noir.back(size), style_noir.upon(size), style_noir.mask(size)
+    r = iconstyle.Renderer()
+    return r.render(None, size), r.upon(size), r.mask(size)
 
 
 def glyph_svg(name: str) -> str:
@@ -63,15 +92,14 @@ def save_png(img, path: Path):
 
 
 def _render_one(args):
-    name, size, out_dir = args
-    work = _renderer.compose(iconstyle.glyph_from_svg(glyph_svg(name)))
-    save_png(iconstyle.finish(work, size), Path(out_dir) / f"{name}.png")
+    pack, name, size, out_dir = args
+    save_png(render_icon(pack, name, size), Path(out_dir) / f"{name}.png")
     return name
 
 
-def render_launcher_icon(res: Path):
-    r = iconstyle.Renderer()
-    work = r.compose(iconstyle.glyph_from_svg(glyph_svg(OWN_DRAWABLE)))
+def render_launcher_icon(pack: str, res: Path):
+    import numpy as np
+    work = np.asarray(render_icon(pack, OWN_DRAWABLE, iconstyle.WORK), dtype=np.float64)
     for q, px in {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}.items():
         d = res / f"mipmap-{q}"
         d.mkdir(parents=True, exist_ok=True)
@@ -98,18 +126,21 @@ def render_launcher_icon(res: Path):
     vals.mkdir(parents=True, exist_ok=True)
     (vals / "launcher_colors.xml").write_text(
         '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n'
-        '    <color name="launcher_background">#242424</color>\n</resources>\n')
+        f'    <color name="launcher_background">{PACKS[pack]["launcher_bg"]}</color>\n</resources>\n')
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default=str(ROOT / "android/app/src/generated"))
+    ap.add_argument("--pack", choices=sorted(PACKS), default="graphite")
+    ap.add_argument("--out", default=None)
     ap.add_argument("--size", type=int, default=256)
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2)
     ap.add_argument("--limit", type=int, default=0, help="render only N icons (testing)")
     args = ap.parse_args()
+    cfg = PACKS[args.pack]
+    own_component = f"{cfg['app_id']}/{ACTIVITY}"
 
-    out = Path(args.out)
+    out = Path(args.out) if args.out else ROOT / cfg["out"]
     if out.exists():
         shutil.rmtree(out)
     res = out / "res"
@@ -135,17 +166,17 @@ def main():
         todo = todo[:args.limit]
 
     # ---- icons
-    with mp.Pool(args.jobs, initializer=_init) as pool:
+    with mp.Pool(args.jobs) as pool:
         for i, _ in enumerate(pool.imap_unordered(
-                _render_one, [(n, args.size, str(draw)) for n in todo], chunksize=4), 1):
+                _render_one, [(args.pack, n, args.size, str(draw)) for n in todo], chunksize=4), 1):
             if i % 50 == 0 or i == len(todo):
                 print(f"  rendered {i}/{len(todo)}", flush=True)
 
     # ---- iconback / iconupon / iconmask for apps without an icon
-    r = iconstyle.Renderer()
-    save_png(r.render(None, args.size), draw / "iconback.png")
-    save_png(r.upon(args.size), draw / "iconupon.png")
-    save_png(r.mask(args.size), draw / "iconmask.png")
+    back, upon, mask = frame_layers(args.pack, args.size)
+    save_png(back, draw / "iconback.png")
+    save_png(upon, draw / "iconupon.png")
+    save_png(mask, draw / "iconmask.png")
 
     # ---- appfilter.xml
     lawn_af = (LAWN / "appfilter.xml").read_text(encoding="utf-8")
@@ -166,8 +197,9 @@ def main():
           '  <iconback img1="iconback" />',
           '  <iconmask img1="iconmask" />',
           '  <iconupon img1="iconupon" />',
-          f'  <scale factor="{ICON_SCALE}" />',
-          f'  <item component="ComponentInfo{{{OWN_COMPONENT}}}" drawable="{OWN_DRAWABLE}" name="My-Icon" />']
+          f'  <scale factor="{cfg["scale"]}" />',
+          f'  <item component="ComponentInfo{{{own_component}}}" drawable="{OWN_DRAWABLE}" '
+          f'name="{cfg["label"]}" />']
     af += ["  " + e for e in keep]
     af.append("</resources>")
     af_text = "\n".join(af) + "\n"
@@ -200,7 +232,7 @@ def main():
     vx += ["  </string-array>", "</resources>"]
     (res / "values" / "iconpack.xml").write_text("\n".join(vx) + "\n", encoding="utf-8")
 
-    render_launcher_icon(res)
+    render_launcher_icon(args.pack, res)
 
     total = sum(p.stat().st_size for p in draw.glob("*.png"))
     print(f"icons: {len(rendered)}, appfilter entries: {len(keep) + 1}, "

@@ -319,7 +319,7 @@ public class MainActivity extends Activity {
             version = "?";
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("My-Icon ").append(version).append(" — без иконки: ").append(missing)
+        sb.append(getString(R.string.app_name)).append(' ').append(version).append(" — без иконки: ").append(missing)
                 .append(" из ").append(list.size()).append('\n');
         sb.append(Build.MANUFACTURER).append(' ').append(Build.MODEL)
                 .append(", Android ").append(Build.VERSION.RELEASE).append('\n');

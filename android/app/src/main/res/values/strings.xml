@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">My-Icon</string>
-    <string name="subtitle">Графитовый icon pack</string>
     <string name="stats">Иконок в паке: %1$d\nВаших приложений с иконкой: %2$d из %3$d</string>
     <string name="stats_loading">Считаю ваши приложения…</string>
     <string name="copy_missing">Скопировать список моих приложений</string>
