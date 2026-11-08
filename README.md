@@ -21,6 +21,14 @@
 
 ![noir](preview/noir_v1.png)
 
+### My-Icon Glass (отдельный пак)
+
+Толстое прозрачное стекло: обои видны насквозь, яркие блики по кромке, тонкая
+серая линия края, мягкая тень; значок тёмный, как печать на стекле.
+Стиль: `tools/style_glass.py`. Приложение `com.myicon.glass`.
+
+![glass](preview/glass_v1.png)
+
 ## Как применить
 
 * **Samsung:** Theme Park → «Значки» → создать новый набор из пакета значков My-Icon → применить.
@@ -43,10 +51,10 @@
 | `pack/apps.txt` | какие приложения входят в пак (пакеты, префиксы, свои соответствия) |
 | `tools/vendor_lawnicons.py` | берёт нужные SVG и записи appfilter из Lawnicons → `third_party/lawnicons`, `pack/selection.json` |
 | `pack/glyphs/*.svg` | свои значки (192×192, линия 12) для того, чего нет в Lawnicons; генерирует `tools/make_glyphs.py` |
-| `tools/build_pack.py` | рисует все PNG 256×256 и генерирует `appfilter.xml`, `drawable.xml`, иконку приложения; `--pack graphite\|noir` |
+| `tools/build_pack.py` | рисует все PNG 256×256 и генерирует `appfilter.xml`, `drawable.xml`, иконку приложения; `--pack graphite\|noir\|glass` |
 | `android/` | приложение пака (Java, без зависимостей) |
 | `.github/workflows/build.yml` | сборка подписанного APK и публикация в Releases |
-| `version.properties` | версии паков: `graphite.*` → релиз `v<версия>`, `noir.*` → релиз `noir-v<версия>` |
+| `version.properties` | версии паков: `graphite.*` → релиз `v<версия>`, `noir.*` → `noir-v<версия>`, `glass.*` → `glass-v<версия>` |
 
 Сборка вручную:
 
@@ -54,7 +62,8 @@
 pip install -r requirements.txt
 python tools/build_pack.py --pack graphite
 python tools/build_pack.py --pack noir
-cd android && ./gradlew assembleGraphiteRelease assembleNoirRelease
+python tools/build_pack.py --pack glass
+cd android && ./gradlew assembleGraphiteRelease assembleNoirRelease assembleGlassRelease
 ```
 
 Добавить приложения: дописать пакеты в `pack/apps.txt`, затем

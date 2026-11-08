@@ -38,6 +38,9 @@ jobs:
       - name: Render noir pack (My-Icon Noir)
         run: python tools/build_pack.py --pack noir --jobs 4
 
+      - name: Render glass pack (My-Icon Glass)
+        run: python tools/build_pack.py --pack glass --jobs 4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -67,7 +70,7 @@ jobs:
 
       - name: Build signed APKs (both flavors)
         working-directory: android
-        run: ./gradlew --no-daemon assembleGraphiteRelease assembleNoirRelease
+        run: ./gradlew --no-daemon assembleGraphiteRelease assembleNoirRelease assembleGlassRelease
 
       - name: Verify signatures
         run: |
@@ -75,6 +78,7 @@ jobs:
           mkdir -p dist
           cp android/app/build/outputs/apk/graphite/release/app-graphite-release.apk dist/My-Icon.apk
           cp android/app/build/outputs/apk/noir/release/app-noir-release.apk dist/My-Icon-Noir.apk
+          cp android/app/build/outputs/apk/glass/release/app-glass-release.apk dist/My-Icon-Glass.apk
           for f in dist/*.apk; do "$BT/apksigner" verify --print-certs "$f"; done
           ls -la dist
 
@@ -84,6 +88,7 @@ jobs:
           get() { grep "^$1=" version.properties | cut -d= -f2; }
           echo "graphite=$(get graphite.versionName)" >> "$GITHUB_OUTPUT"
           echo "noir=$(get noir.versionName)" >> "$GITHUB_OUTPUT"
+          echo "glass=$(get glass.versionName)" >> "$GITHUB_OUTPUT"
           echo "icons=$(ls android/app/src/generated/res/drawable-nodpi/*.png | wc -l)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
@@ -124,3 +129,20 @@ jobs:
             **Скачать:** [My-Icon-Noir.apk](https://github.com/${{ github.repository }}/releases/download/noir-v${{ steps.ver.outputs.noir }}/My-Icon-Noir.apk)
 
             Сборка из ${{ github.sha }}. Значки — Lawnicons (Apache-2.0), стиль: `tools/style_noir.py`.
+
+      - name: Publish My-Icon Glass
+        if: github.ref == 'refs/heads/ccr-1ed4b1b2-a3fwpi' || github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: glass-v${{ steps.ver.outputs.glass }}
+          target_commitish: ${{ github.sha }}
+          name: My-Icon Glass v${{ steps.ver.outputs.glass }}
+          make_latest: false
+          files: dist/My-Icon-Glass.apk
+          body: |
+            Прозрачные стеклянные иконки: толстое стекло с бликами по кромке, обои видны насквозь.
+            Отдельное приложение (com.myicon.glass), ставится рядом с My-Icon и My-Icon Noir.
+
+            **Скачать:** [My-Icon-Glass.apk](https://github.com/${{ github.repository }}/releases/download/glass-v${{ steps.ver.outputs.glass }}/My-Icon-Glass.apk)
+
+            Сборка из ${{ github.sha }}. Значки — Lawnicons (Apache-2.0), стиль: `tools/style_glass.py`.

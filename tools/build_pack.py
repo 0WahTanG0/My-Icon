@@ -3,8 +3,9 @@
 usage: python tools/build_pack.py [--pack graphite|noir] [--size 256] [--jobs N]
 
 Packs share the app list and glyphs and differ in style, app id and output dir:
-  graphite  tools/iconstyle.py  com.myicon.graphite  android/app/src/generated
-  noir      tools/style_noir.py com.myicon.noir      android/app/src/generated-noir
+  graphite  tools/iconstyle.py   com.myicon.graphite  android/app/src/generated
+  noir      tools/style_noir.py  com.myicon.noir      android/app/src/generated-noir
+  glass     tools/style_glass.py com.myicon.glass     android/app/src/generated-glass
 
 Reads  pack/selection.json, third_party/lawnicons/{svgs,appfilter.xml}, pack/glyphs/*.svg
 Writes <out>/res/drawable-nodpi/*.png      icons + iconback/iconupon/iconmask
@@ -39,7 +40,9 @@ PACKS = {
     "graphite": dict(app_id="com.myicon.graphite", out="android/app/src/generated", scale=0.58,
                      label="My-Icon", launcher_bg="#242424"),
     "noir": dict(app_id="com.myicon.noir", out="android/app/src/generated-noir", scale=0.56,
-                 label="My-Icon Noir", launcher_bg="#1B1B1B"),
+                 label="My-Icon Noir", launcher_bg="#1B1B1B", module="style_noir"),
+    "glass": dict(app_id="com.myicon.glass", out="android/app/src/generated-glass", scale=0.62,
+                  label="My-Icon Glass", launcher_bg="#E6E8EC", module="style_glass"),
 }
 
 _renderer = None
@@ -50,11 +53,21 @@ def _init():
     _renderer = iconstyle.Renderer()
 
 
+def _style_module(pack: str):
+    """Style module of a pack (None for graphite, which uses iconstyle.Renderer)."""
+    name = PACKS[pack].get("module")
+    if not name:
+        return None
+    import importlib
+    return importlib.import_module(name)
+
+
 def render_icon(pack: str, name: str, size: int):
     """One themed icon as a PIL RGBA image."""
-    if pack == "noir":
-        import style_noir
-        return style_noir.noir(glyph_svg(name), name, size)
+    mod = _style_module(pack)
+    if mod is not None:
+        fn = next(iter(mod.STYLES.values()))[1]
+        return fn(glyph_svg(name), name, size)
     global _renderer
     if _renderer is None:
         _init()
@@ -63,9 +76,9 @@ def render_icon(pack: str, name: str, size: int):
 
 def frame_layers(pack: str, size: int):
     """iconback, iconupon, iconmask for apps the pack has no icon for."""
-    if pack == "noir":
-        import style_noir
-        return style_noir.back(size), style_noir.upon(size), style_noir.mask(size)
+    mod = _style_module(pack)
+    if mod is not None:
+        return mod.back(size), mod.upon(size), mod.mask(size)
     r = iconstyle.Renderer()
     return r.render(None, size), r.upon(size), r.mask(size)
 
@@ -85,10 +98,17 @@ def android_string(text: str) -> str:
 
 
 def save_png(img, path: Path):
-    # icons are pure greys: store as grey+alpha, half the size of RGBA
-    r, g, b, a = img.split()
+    """Grey icons are stored as grey+alpha (half the size); tinted ones as RGBA."""
+    import numpy as np
     from PIL import Image
-    Image.merge("LA", (r, a)).save(path, optimize=True)
+    arr = np.asarray(img, dtype=np.int16)
+    vis = arr[..., 3] > 8
+    spread = np.abs(arr[..., 0] - arr[..., 1]) + np.abs(arr[..., 1] - arr[..., 2])
+    if not vis.any() or spread[vis].max() <= 6:
+        r, g, b, a = img.split()
+        Image.merge("LA", (r, a)).save(path, optimize=True)
+    else:
+        img.save(path, optimize=True)
 
 
 def _render_one(args):

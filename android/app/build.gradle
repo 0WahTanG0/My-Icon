@@ -40,6 +40,14 @@ android {
             resValue 'string', 'app_name', 'My-Icon Noir'
             resValue 'string', 'subtitle', 'Чёрный icon pack со сквозными значками'
         }
+        glass {
+            dimension 'pack'
+            applicationId 'com.myicon.glass'
+            versionCode versionProps.getProperty('glass.versionCode') as int
+            versionName versionProps.getProperty('glass.versionName')
+            resValue 'string', 'app_name', 'My-Icon Glass'
+            resValue 'string', 'subtitle', 'Прозрачные стеклянные иконки'
+        }
     }
 
     signingConfigs {
@@ -70,6 +78,10 @@ android {
         noir {
             res.srcDirs += 'src/generated-noir/res'
             assets.srcDirs += 'src/generated-noir/assets'
+        }
+        glass {
+            res.srcDirs += 'src/generated-glass/res'
+            assets.srcDirs += 'src/generated-glass/assets'
         }
     }
 
