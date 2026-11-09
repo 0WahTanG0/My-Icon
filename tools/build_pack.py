@@ -2,10 +2,11 @@
 
 usage: python tools/build_pack.py [--pack graphite|noir] [--size 256] [--jobs N]
 
-Packs share the app list and glyphs and differ in style, app id and output dir:
-  graphite  tools/iconstyle.py   com.myicon.graphite  android/app/src/generated
-  noir      tools/style_noir.py  com.myicon.noir      android/app/src/generated-noir
-  glass     tools/style_glass.py com.myicon.glass     android/app/src/generated-glass
+All styles share the app list, glyphs and app id (they are flavors of one app):
+  graphite  tools/iconstyle.py    android/app/src/generated
+  noir      tools/style_noir.py   android/app/src/generated-noir
+  glass     tools/style_glass.py  android/app/src/generated-glass
+  white     tools/style_white.py  android/app/src/generated-white
 
 Reads  pack/selection.json, third_party/lawnicons/{svgs,appfilter.xml}, pack/glyphs/*.svg
 Writes <out>/res/drawable-nodpi/*.png      icons + iconback/iconupon/iconmask
@@ -36,14 +37,17 @@ GLYPHS = ROOT / "pack/glyphs"
 OWN_DRAWABLE = "my_icon_pack"
 ACTIVITY = "com.myicon.graphite.MainActivity"   # Java namespace is shared by all flavors
 PACKS = {
+    # every style is a flavor of the same app (com.myicon.graphite);
     # scale: size of unthemed app icons inside the frame
-    "graphite": dict(app_id="com.myicon.graphite", out="android/app/src/generated", scale=0.58,
-                     label="My-Icon", launcher_bg="#242424"),
-    "noir": dict(app_id="com.myicon.noir", out="android/app/src/generated-noir", scale=0.56,
-                 label="My-Icon Noir", launcher_bg="#1B1B1B", module="style_noir"),
-    "glass": dict(app_id="com.myicon.glass", out="android/app/src/generated-glass", scale=0.62,
-                  label="My-Icon Glass", launcher_bg="#E6E8EC", module="style_glass"),
+    "graphite": dict(out="android/app/src/generated", scale=0.58, launcher_bg="#242424"),
+    "noir": dict(out="android/app/src/generated-noir", scale=0.56, launcher_bg="#1B1B1B",
+                 module="style_noir"),
+    "glass": dict(out="android/app/src/generated-glass", scale=0.6, launcher_bg="#E6E8EC",
+                  module="style_glass"),
+    "white": dict(out="android/app/src/generated-white", scale=0.5, launcher_bg="#E6E7E9",
+                  module="style_white"),
 }
+APP_ID = "com.myicon.graphite"
 
 _renderer = None
 
@@ -158,7 +162,7 @@ def main():
     ap.add_argument("--limit", type=int, default=0, help="render only N icons (testing)")
     args = ap.parse_args()
     cfg = PACKS[args.pack]
-    own_component = f"{cfg['app_id']}/{ACTIVITY}"
+    own_component = f"{APP_ID}/{ACTIVITY}"
 
     out = Path(args.out) if args.out else ROOT / cfg["out"]
     if out.exists():
@@ -219,7 +223,7 @@ def main():
           '  <iconupon img1="iconupon" />',
           f'  <scale factor="{cfg["scale"]}" />',
           f'  <item component="ComponentInfo{{{own_component}}}" drawable="{OWN_DRAWABLE}" '
-          f'name="{cfg["label"]}" />']
+          f'name="My-Icon" />']
     af += ["  " + e for e in keep]
     af.append("</resources>")
     af_text = "\n".join(af) + "\n"

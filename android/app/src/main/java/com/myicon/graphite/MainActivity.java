@@ -82,10 +82,12 @@ public class MainActivity extends Activity {
 
         if (pickMode) {
             header.findViewById(R.id.tools).setVisibility(View.GONE);
+            header.findViewById(R.id.style_card).setVisibility(View.GONE);
             header.findViewById(R.id.apply_card).setVisibility(View.GONE);
             ((TextView) header.findViewById(R.id.icons_header)).setText(R.string.pick_title);
         } else {
             setupTools(header);
+            new StylesCard(this, header).load();
         }
 
         DisplayMetrics dm = getResources().getDisplayMetrics();

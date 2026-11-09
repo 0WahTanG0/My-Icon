@@ -14,4 +14,17 @@
     <string name="icons_header">Все иконки</string>
     <string name="pick_title">Выберите иконку</string>
     <string name="not_found">Не удалось открыть приложение</string>
+    <string name="style_header">Стиль иконок</string>
+    <string name="style_current">Сейчас: %1$s · версия %2$s</string>
+    <string name="styles_loading">Загружаю список стилей…</string>
+    <string name="styles_offline">Не удалось загрузить список стилей. Проверьте интернет.</string>
+    <string name="styles_hint">Выберите стиль: приложение скачает его и установит поверх себя. После смены стиля заново создайте набор значков в Theme Park.</string>
+    <string name="style_active">Включён</string>
+    <string name="style_install">Включить</string>
+    <string name="update_available">Обновить до версии %1$s</string>
+    <string name="downloading">Загрузка… %1$d%%</string>
+    <string name="installing">Открываю установщик…</string>
+    <string name="allow_install">Разрешите установку из My-Icon и нажмите кнопку ещё раз</string>
+    <string name="install_failed">Не удалось установить: %1$s</string>
+    <string name="download_failed">Не удалось скачать: %1$s</string>
 </resources>

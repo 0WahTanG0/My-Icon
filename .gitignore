@@ -8,5 +8,6 @@ android/app/build/
 android/app/src/generated/
 android/app/src/generated-noir/
 android/app/src/generated-glass/
+android/app/src/generated-white/
 android/local.properties
 /dist/

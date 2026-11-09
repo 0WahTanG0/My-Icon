@@ -1,33 +1,23 @@
-# My-Icon — графитовый icon pack для Android
+# My-Icon — icon pack для Android, четыре стиля в одном приложении
 
-Тёмная матовая плитка-squircle (~#2A2A2A) с рамкой, углублением-«блюдцем»
-и выпуклым монохромным значком. Свет сверху-слева, одна гамма.
+Одно приложение `com.myicon.graphite`. Стиль выбирается внутри приложения
+(раздел «Стиль иконок»): оно скачивает выбранный вариант из последнего релиза и
+ставит его поверх себя. Там же обновления; новые стили появляются в списке сами
+(`styles.json` в релизе).
 
-**Скачать APK:** https://github.com/0WahTanG0/My-Icon/releases/latest/download/My-Icon.apk
+**Скачать:** https://github.com/0WahTanG0/My-Icon/releases/latest/download/My-Icon-white.apk
+(или `My-Icon-graphite.apk`, `My-Icon-noir.apk`, `My-Icon-glass.apk`)
 
-![v1](preview/v1_overview.png)
+| Стиль | Модуль | Превью |
+|---|---|---|
+| Графит: тёмная плитка, блюдце, выпуклый значок | `tools/iconstyle.py` | ![](preview/v1_overview.png) |
+| Noir: чёрная плита, значок вырезан насквозь | `tools/style_noir.py` | ![](preview/noir_v1.png) |
+| Стекло: прозрачное толстое стекло | `tools/style_glass.py` | ![](preview/glass_v1.png) |
+| Белый: белые круглые плитки, длинная тень | `tools/style_white.py` | ![](preview/white_v1.png) |
 
-Версия 2 — иконки для всех приложений с телефона владельца
-(12 нарисованы заново, `tools/make_glyphs.py`):
+Иконки для приложений владельца (12 нарисованы заново, `tools/make_glyphs.py`):
 
 ![v2](preview/v2_my_apps.png)
-
-### My-Icon Noir (отдельный пак)
-
-Толстая чёрная матовая плита, значок вырезан насквозь: обои видны сквозь вырезы,
-вложенные детали (трубка WhatsApp, центр шестерёнки) выпуклые чёрные, вокруг
-гравированная линия. Стиль: `tools/style_noir.py`. Приложение `com.myicon.noir`
-ставится рядом с графитовым.
-
-![noir](preview/noir_v1.png)
-
-### My-Icon Glass (отдельный пак)
-
-Толстое прозрачное стекло: обои видны насквозь, яркие блики по кромке, тонкая
-серая линия края, мягкая тень; значок тёмный, как печать на стекле.
-Стиль: `tools/style_glass.py`. Приложение `com.myicon.glass`.
-
-![glass](preview/glass_v1.png)
 
 ## Как применить
 
@@ -38,10 +28,10 @@
 Формат стандартный: `appfilter.xml` и `drawable.xml` (в `res/xml` и в `assets`),
 `iconback` / `iconmask` / `iconupon` + `scale` для приложений без своей иконки.
 
-## Версия 2 со всеми вашими приложениями
+## Новые приложения
 
-В приложении My-Icon нажмите **«Скопировать список моих приложений»** и пришлите текст.
-Это приложения, для которых в паке ещё нет иконки (`название | пакет/activity`).
+В приложении нажмите **«Скопировать список моих приложений»** и пришлите текст:
+это приложения, для которых ещё нет иконки (`название | пакет/activity`).
 
 ## Как это устроено
 
@@ -51,10 +41,11 @@
 | `pack/apps.txt` | какие приложения входят в пак (пакеты, префиксы, свои соответствия) |
 | `tools/vendor_lawnicons.py` | берёт нужные SVG и записи appfilter из Lawnicons → `third_party/lawnicons`, `pack/selection.json` |
 | `pack/glyphs/*.svg` | свои значки (192×192, линия 12) для того, чего нет в Lawnicons; генерирует `tools/make_glyphs.py` |
-| `tools/build_pack.py` | рисует все PNG 256×256 и генерирует `appfilter.xml`, `drawable.xml`, иконку приложения; `--pack graphite\|noir\|glass` |
-| `android/` | приложение пака (Java, без зависимостей) |
-| `.github/workflows/build.yml` | сборка подписанного APK и публикация в Releases |
-| `version.properties` | версии паков: `graphite.*` → релиз `v<версия>`, `noir.*` → `noir-v<версия>`, `glass.*` → `glass-v<версия>` |
+| `tools/build_pack.py` | рисует все PNG 256×256 и генерирует `appfilter.xml`, `drawable.xml`, иконку приложения; `--pack graphite\|noir\|glass\|white` |
+| `android/` | приложение (Java, без зависимостей): flavor на каждый стиль, переключение стиля и обновления (`StylesCard`, `Installer`) |
+| `.github/workflows/build.yml` | рисует все стили, собирает подписанные APK, публикует один релиз со всеми стилями, `styles.json` и превью |
+| `pack/styles.json`, `tools/release_extras.py` | список стилей для приложения и полоски-превью |
+| `version.properties` | одна версия на все стили; релиз `v<версия>` |
 
 Сборка вручную:
 
@@ -63,7 +54,8 @@ pip install -r requirements.txt
 python tools/build_pack.py --pack graphite
 python tools/build_pack.py --pack noir
 python tools/build_pack.py --pack glass
-cd android && ./gradlew assembleGraphiteRelease assembleNoirRelease assembleGlassRelease
+python tools/build_pack.py --pack white
+cd android && ./gradlew assembleRelease
 ```
 
 Добавить приложения: дописать пакеты в `pack/apps.txt`, затем

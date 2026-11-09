@@ -32,14 +32,13 @@ jobs:
           python -m pip install -r requirements.txt
           python -c "import cairosvg" || (sudo apt-get update && sudo apt-get install -y --no-install-recommends libcairo2)
 
-      - name: Render graphite pack (My-Icon)
-        run: python tools/build_pack.py --pack graphite --jobs 4
-
-      - name: Render noir pack (My-Icon Noir)
-        run: python tools/build_pack.py --pack noir --jobs 4
-
-      - name: Render glass pack (My-Icon Glass)
-        run: python tools/build_pack.py --pack glass --jobs 4
+      - name: Render every style (Python + Pillow)
+        run: |
+          for p in graphite noir glass white; do
+            echo "::group::$p"
+            python tools/build_pack.py --pack $p --jobs 4
+            echo "::endgroup::"
+          done
 
       - uses: actions/setup-java@v4
         with:
@@ -68,81 +67,50 @@ jobs:
             echo "using signing/release.jks from the repository"
           fi
 
-      - name: Build signed APKs (both flavors)
+      - name: Build signed APKs (one per style, all the same app)
         working-directory: android
-        run: ./gradlew --no-daemon assembleGraphiteRelease assembleNoirRelease assembleGlassRelease
+        run: ./gradlew --no-daemon assembleGraphiteRelease assembleNoirRelease assembleGlassRelease assembleWhiteRelease
 
-      - name: Verify signatures
+      - name: Collect release files
         run: |
           BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           mkdir -p dist
-          cp android/app/build/outputs/apk/graphite/release/app-graphite-release.apk dist/My-Icon.apk
-          cp android/app/build/outputs/apk/noir/release/app-noir-release.apk dist/My-Icon-Noir.apk
-          cp android/app/build/outputs/apk/glass/release/app-glass-release.apk dist/My-Icon-Glass.apk
-          for f in dist/*.apk; do "$BT/apksigner" verify --print-certs "$f"; done
+          for p in graphite noir glass white; do
+            cp android/app/build/outputs/apk/$p/release/app-$p-release.apk dist/My-Icon-$p.apk
+            "$BT/apksigner" verify --print-certs dist/My-Icon-$p.apk | head -2
+          done
+          cp dist/My-Icon-graphite.apk dist/My-Icon.apk   # old download link keeps working
+          python tools/release_extras.py dist
           ls -la dist
 
-      - name: Read versions
+      - name: Read version
         id: ver
-        run: |
-          get() { grep "^$1=" version.properties | cut -d= -f2; }
-          echo "graphite=$(get graphite.versionName)" >> "$GITHUB_OUTPUT"
-          echo "noir=$(get noir.versionName)" >> "$GITHUB_OUTPUT"
-          echo "glass=$(get glass.versionName)" >> "$GITHUB_OUTPUT"
-          echo "icons=$(ls android/app/src/generated/res/drawable-nodpi/*.png | wc -l)" >> "$GITHUB_OUTPUT"
+        run: echo "name=$(grep '^versionName=' version.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: icon-packs
-          path: dist/*.apk
+          name: my-icon
+          path: dist/*
 
-      - name: Publish My-Icon (graphite)
+      - name: Publish release
         if: github.ref == 'refs/heads/ccr-1ed4b1b2-a3fwpi' || github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.ver.outputs.graphite }}
+          tag_name: v${{ steps.ver.outputs.name }}
           target_commitish: ${{ github.sha }}
-          name: My-Icon v${{ steps.ver.outputs.graphite }}
+          name: My-Icon v${{ steps.ver.outputs.name }}
           make_latest: true
-          files: dist/My-Icon.apk
+          files: |
+            dist/*.apk
+            dist/styles.json
+            dist/preview-*.png
           body: |
-            Графитовый icon pack: ${{ steps.ver.outputs.icons }} картинок (иконки + iconback/iconupon/iconmask).
+            Одно приложение, все стили: Графит, Noir, Стекло, Белый.
+            Стиль переключается в приложении (раздел «Стиль иконок»), там же обновления.
 
-            **Скачать:** [My-Icon.apk](https://github.com/${{ github.repository }}/releases/download/v${{ steps.ver.outputs.graphite }}/My-Icon.apk)
-            (всегда последняя версия: https://github.com/${{ github.repository }}/releases/latest/download/My-Icon.apk)
+            **Скачать:** [My-Icon-white.apk](https://github.com/${{ github.repository }}/releases/latest/download/My-Icon-white.apk) ·
+            [графит](https://github.com/${{ github.repository }}/releases/latest/download/My-Icon-graphite.apk) ·
+            [noir](https://github.com/${{ github.repository }}/releases/latest/download/My-Icon-noir.apk) ·
+            [стекло](https://github.com/${{ github.repository }}/releases/latest/download/My-Icon-glass.apk)
 
-            Сборка из ${{ github.sha }}. Значки — Lawnicons (Apache-2.0), стиль: `tools/iconstyle.py`.
-
-      - name: Publish My-Icon Noir
-        if: github.ref == 'refs/heads/ccr-1ed4b1b2-a3fwpi' || github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: noir-v${{ steps.ver.outputs.noir }}
-          target_commitish: ${{ github.sha }}
-          name: My-Icon Noir v${{ steps.ver.outputs.noir }}
-          make_latest: false
-          files: dist/My-Icon-Noir.apk
-          body: |
-            Чёрный icon pack со сквозными значками: обои видны сквозь вырезы.
-            Отдельное приложение (com.myicon.noir), ставится рядом с графитовым My-Icon.
-
-            **Скачать:** [My-Icon-Noir.apk](https://github.com/${{ github.repository }}/releases/download/noir-v${{ steps.ver.outputs.noir }}/My-Icon-Noir.apk)
-
-            Сборка из ${{ github.sha }}. Значки — Lawnicons (Apache-2.0), стиль: `tools/style_noir.py`.
-
-      - name: Publish My-Icon Glass
-        if: github.ref == 'refs/heads/ccr-1ed4b1b2-a3fwpi' || github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: glass-v${{ steps.ver.outputs.glass }}
-          target_commitish: ${{ github.sha }}
-          name: My-Icon Glass v${{ steps.ver.outputs.glass }}
-          make_latest: false
-          files: dist/My-Icon-Glass.apk
-          body: |
-            Прозрачные стеклянные иконки: толстое стекло с бликами по кромке, обои видны насквозь.
-            Отдельное приложение (com.myicon.glass), ставится рядом с My-Icon и My-Icon Noir.
-
-            **Скачать:** [My-Icon-Glass.apk](https://github.com/${{ github.repository }}/releases/download/glass-v${{ steps.ver.outputs.glass }}/My-Icon-Glass.apk)
-
-            Сборка из ${{ github.sha }}. Значки — Lawnicons (Apache-2.0), стиль: `tools/style_glass.py`.
+            Сборка из ${{ github.sha }}. Значки — Lawnicons (Apache-2.0).

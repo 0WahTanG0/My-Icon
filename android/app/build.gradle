@@ -17,36 +17,41 @@ android {
     compileSdk 35
 
     defaultConfig {
+        // every style is the same app: switching style installs another flavor over it
+        applicationId 'com.myicon.graphite'
         minSdk 21
         targetSdk 35
+        versionCode versionProps.getProperty('versionCode') as int
+        versionName versionProps.getProperty('versionName')
+        resValue 'string', 'app_name', 'My-Icon'
     }
 
-    // One flavor per icon pack: own app id (installs side by side), name and icons.
+    buildFeatures {
+        buildConfig true
+    }
+
+    // One flavor per icon style (tools/build_pack.py --pack <flavor> renders its icons).
     flavorDimensions 'pack'
     productFlavors {
         graphite {
             dimension 'pack'
-            applicationId 'com.myicon.graphite'
-            versionCode versionProps.getProperty('graphite.versionCode') as int
-            versionName versionProps.getProperty('graphite.versionName')
-            resValue 'string', 'app_name', 'My-Icon'
-            resValue 'string', 'subtitle', 'Графитовый icon pack'
+            buildConfigField 'String', 'STYLE_ID', '"graphite"'
+            resValue 'string', 'style_name', 'Графит'
         }
         noir {
             dimension 'pack'
-            applicationId 'com.myicon.noir'
-            versionCode versionProps.getProperty('noir.versionCode') as int
-            versionName versionProps.getProperty('noir.versionName')
-            resValue 'string', 'app_name', 'My-Icon Noir'
-            resValue 'string', 'subtitle', 'Чёрный icon pack со сквозными значками'
+            buildConfigField 'String', 'STYLE_ID', '"noir"'
+            resValue 'string', 'style_name', 'Noir'
         }
         glass {
             dimension 'pack'
-            applicationId 'com.myicon.glass'
-            versionCode versionProps.getProperty('glass.versionCode') as int
-            versionName versionProps.getProperty('glass.versionName')
-            resValue 'string', 'app_name', 'My-Icon Glass'
-            resValue 'string', 'subtitle', 'Прозрачные стеклянные иконки'
+            buildConfigField 'String', 'STYLE_ID', '"glass"'
+            resValue 'string', 'style_name', 'Стекло'
+        }
+        white {
+            dimension 'pack'
+            buildConfigField 'String', 'STYLE_ID', '"white"'
+            resValue 'string', 'style_name', 'Белый'
         }
     }
 
@@ -82,6 +87,10 @@ android {
         glass {
             res.srcDirs += 'src/generated-glass/res'
             assets.srcDirs += 'src/generated-glass/assets'
+        }
+        white {
+            res.srcDirs += 'src/generated-white/res'
+            assets.srcDirs += 'src/generated-white/assets'
         }
     }
 
