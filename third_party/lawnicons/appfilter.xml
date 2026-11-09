@@ -47,6 +47,8 @@
   <item component="ComponentInfo{com.google.android.apps.accessibility.auditor/com.google.android.apps.accessibility.auditor.ui.MainActivity}" drawable="accessibility_scanner" name="Accessibility Scanner" />
   <item component="ComponentInfo{com.nll.cb/com.nll.cb.DefaultAlias}" drawable="generic_dialer" name="ACR Phone" />
   <item component="ComponentInfo{com.google.android.apps.accessibility.maui.actionblocks/com.google.android.apps.accessibility.maui.actionblocks.home.HomeActivity}" drawable="action_blocks" name="Action Blocks" />
+  <item component="ComponentInfo{com.adguard.vpn/com.adguard.vpn.ui.SplashActivity}" drawable="adguard_vpn" name="AdGuard VPN" />
+  <item component="ComponentInfo{com.adguard.vpn/com.adguard.vpn.ui.routing_activity.SplashActivity}" drawable="adguard_vpn" name="AdGuard VPN" />
   <item component="ComponentInfo{com.adobe.reader/com.adobe.reader.AdobeReader}" drawable="adobe_acrobat_reader" name="Adobe Acrobat Reader" />
   <item component="ComponentInfo{com.adobe.echosign/com.adobe.echosign.ui.ASLauncherActivity}" drawable="adobe_acrobat_reader" name="Adobe Acrobat Sign" />
   <item component="ComponentInfo{com.gallery20/com.gallery20.HomeActivity}" drawable="generic_gallery" name="AI Gallery" />
@@ -1721,6 +1723,7 @@
   <item component="ComponentInfo{com.android.keepass/com.android.keepass.KeePass}" drawable="keepassdroid" name="KeePassDroid" />
   <item component="ComponentInfo{cocobo1.pupu.app/com.discord.main.MainDefault}" drawable="discord" name="Kettu" />
   <item component="ComponentInfo{cocobo1.pupu.app/com.discord.main.MainGalaxy}" drawable="discord" name="Kettu" />
+  <item component="ComponentInfo{com.moonshot.kimichat/com.moonshot.kimichat.MainActivity}" drawable="kimi" name="KIMI" />
   <item component="ComponentInfo{com.forecast.weather.severe.wind/com.fornow.severe.MainActivity}" drawable="huawei_weather" name="Know Weather" />
   <item component="ComponentInfo{com.kny.TaiwanWeatherInformation/com.kny.TaiwanWeatherInformation.MainActivity}" drawable="huawei_weather" name="KNY Weather" />
   <item component="ComponentInfo{com.chooloo.www.koler/com.chooloo.www.koler.ui.main.MainActivity}" drawable="generic_dialer" name="Koler" />
@@ -3915,6 +3918,8 @@
   <item component="ComponentInfo{ru.ok.android/ru.ok.android.LauncherDefault}" drawable="ok" name="ОК ~~ OK" />
   <item component="ComponentInfo{ru.ok.android/ru.ok.android.ui.activity.main.OdklActivity}" drawable="ok" name="ОК ~~ OK" />
   <item component="ComponentInfo{ru.more.play/ru.okko.mobile.app.internal.presentation.RootActivity}" drawable="okko" name="Окко ~~ Okko" />
+  <item component="ComponentInfo{ru.pyaterochka.app.browser/ru.pyaterochka.app.launch.Launcher}" drawable="pyaterochka" name="Пятёрочка ~~ Pyaterochka" />
+  <item component="ComponentInfo{ru.pyaterochka.app.browser/ru.pyaterochka.app.launch.Launcher_New_Year}" drawable="pyaterochka" name="Пятёрочка ~~ Pyaterochka" />
   <item component="ComponentInfo{ru.raiffeisen.android.rbo/ru.raiffeisen.android.rbo.SplashActivity}" drawable="raiffeisen_bank" name="Райффайзен Бизнес ~~ Raiffeisen Business" />
   <item component="ComponentInfo{ru.raiffeisenbank.android.rbplus/ru.raiffeisenbank.android.rbplus.presentation.MainActivity}" drawable="raiffeisen_bank" name="Райффайзен Бизнес Плюс ~~ Raiffeisen Business Plus" />
   <item component="ComponentInfo{ua.aval.biz.client.android/ua.aval.biz.client.android.app.activity.SplashActivity}" drawable="raiffeisen_bank" name="Райффайзен Бізнес ~~ Raiffeisen Business" />

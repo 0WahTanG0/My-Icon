@@ -499,6 +499,7 @@
   {
    "title": "Мои приложения",
    "drawables": [
+    "adguard_vpn",
     "generic_pdf_file",
     "secure_file_manager",
     "cdek",
@@ -509,6 +510,7 @@
     "glassify",
     "hiddify",
     "work_shift_calendar",
+    "kimi",
     "playstation_ps",
     "revanced_extended",
     "roadside_empire",
@@ -524,6 +526,7 @@
     "home_with_alice",
     "letai",
     "moy_nalog",
+    "pyaterochka",
     "cupis",
     "yandex_tasks"
    ]
@@ -536,6 +539,7 @@
   "accessibility_scanner": "Accessibility Scanner",
   "generic_dialer": "ACR Phone",
   "action_blocks": "Action Blocks",
+  "adguard_vpn": "AdGuard VPN",
   "adobe_acrobat_reader": "Adobe Acrobat Reader",
   "generic_gallery": "AI Gallery",
   "aicore": "AICore",
@@ -728,6 +732,7 @@
   "jamboard": "Jamboard",
   "work_shift_calendar": "Kalender Indonesia",
   "keepassdroid": "KeePassDroid",
+  "kimi": "KIMI",
   "pixel_tips": "Lenovo Tips",
   "mail": "LG Email",
   "generic_voicemail": "LG Voicemail",
@@ -953,6 +958,7 @@
   "cloud_mail_ru": "Облако Mail.Ru ~~ Cloud Mail.Ru",
   "ok": "ОК ~~ OK",
   "okko": "Окко ~~ Okko",
+  "pyaterochka": "Пятёрочка ~~ Pyaterochka",
   "russian_railways": "РЖД ~~ Russian Railways",
   "sberbank": "СберKids ~~ SberKids",
   "t_bank": "Т-Банк ~~ T-Bank",

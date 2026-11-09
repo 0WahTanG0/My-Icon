@@ -24,8 +24,8 @@ SHADOW = np.array([70, 70, 70])
 LIGHT = (1.0, -1.0, 1.3)                          # from the top-right
 
 
-def _disc():
-    sd = sd_circle(R / S, DCX, DCY)
+def _disc(cx=DCX, cy=DCY, r=R):
+    sd = sd_circle(r / S, cx, cy)
     return sd, cov(sd)
 
 
@@ -33,27 +33,27 @@ def _long_shadow(disc):
     """The disc swept down-left along the diagonal, fading with distance."""
     k2 = 2
     small = disc.reshape(S // k2, k2, S // k2, k2).mean(axis=(1, 3))
-    n = int(0.6 * S / k2)
+    # short enough to die out inside the icon: its far end is the round disc
+    # outline, so it never shows the square edge of the icon
+    n = int(0.16 * S / k2)
     acc = np.zeros_like(small)
     for k in range(1, n):
-        np.maximum(acc, shift(small, -k, k) * (1 - k / n) ** 0.9, out=acc)
+        np.maximum(acc, shift(small, -k, k) * (1 - k / n) ** 1.3, out=acc)
     from PIL import Image
     big = np.asarray(Image.fromarray(acc.astype(np.float32), "F").resize((S, S), Image.BILINEAR))
     return blur(big, 0.01 * S)
 
 
-def _base(c: Canvas):
-    sd, disc = _disc()
-    # fade the long shadow out before the edges of the icon, so it never ends in a hard line
-    border = np.minimum(np.minimum(XX, S - 1 - XX), np.minimum(YY, S - 1 - YY))
-    fade = np.clip(border / (0.16 * S), 0, 1) ** 1.5
-    c.over(SHADOW, _long_shadow(disc) * 0.22 * fade * (1 - disc))
+def _base(c: Canvas, cx=DCX, cy=DCY, r=R, long_shadow=True):
+    sd, disc = _disc(cx, cy, r)
+    if long_shadow:
+        c.over(SHADOW, _long_shadow(disc) * 0.26 * (1 - disc))
     c.over(SHADOW, blur(shift(disc, -0.006 * S, 0.008 * S), 0.012 * S) * 0.22 * (1 - disc))
     # height field: rounded outer edge, then a shallow parabolic saucer inside it
     rim = 0.03 * S
     h = dome(sd, 0.013 * S, 0.008 * S)
-    r = np.hypot(XX - DCX, YY - DCY) / (R - rim)
-    h = h - 0.075 * S * np.clip(1 - r ** 2, 0, 1) * cov(sd - rim * 0.3)
+    rr = np.hypot(XX - cx, YY - cy) / (r - rim)
+    h = h - 0.075 * S * (r / R) * np.clip(1 - rr ** 2, 0, 1) * cov(sd - rim * 0.3)
     h = blur(h, 1.5)
     shade, spec, _ = light(h, L=LIGHT, power=24)
     col = 240 + shade * 115 + spec * 25
@@ -70,9 +70,14 @@ def white(svg, name, out=256):
     return c.image(out)
 
 
+# iconback: also used by Theme Park as the folder background, so it is a big
+# centred saucer without the long shadow (the folder's icon grid sits inside it)
+BACK = dict(cx=S / 2, cy=S / 2, r=0.46 * S)
+
+
 def back(out=256):
     c = Canvas()
-    _base(c)
+    _base(c, long_shadow=False, **BACK)
     return c.image(out)
 
 
@@ -85,12 +90,12 @@ def upon(out=256):
 def mask(out=256):
     """iconmask: only cuts what lies outside the disc (launchers apply DST_OUT)."""
     from styles import finish
-    _, disc = _disc()
+    _, disc = _disc(**BACK)
     img = np.zeros((S, S, 4))
     img[..., 3] = (1 - disc) * 255
     return finish(img, out)
 
 
-ICON_SCALE = 0.5
+ICON_SCALE = 0.64
 
 STYLES = {"white": ("Белый", white)}

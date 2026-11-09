@@ -271,3 +271,7 @@ ru.kfc.kfc_delivery
 com.server.auditor.ssh.client
 app.rvx.android.youtube
 mobi.zona
+# v3.1: seen without icons on the owner's phone
+ru.pyaterochka.app.browser
+com.adguard.vpn
+com.moonshot.kimichat
