@@ -1,11 +1,13 @@
-""""White" style: white round tiles with thin line glyphs and a long shadow.
+""""White" style: a raised white disc with a concave, saucer-like top.
 
-Taken apart from the owner's reference picture:
- - a white disc, slightly domed: white towards the light (top-right), a soft
-   light grey towards the bottom-left edge;
- - light from the top-right, so a long soft shadow runs diagonally down-left,
-   the disc swept along that diagonal and fading out;
- - a thin dark line glyph (about 2.4 % of the disc's diameter), flat on the disc.
+Taken apart from the owner's reference picture (measured, not guessed):
+ - the disc is darker at the top and right and brighter at the bottom and left;
+   with the light coming from the top-right that is a dished (concave) top, a
+   shallow saucer, while the rounded outer edge catches a thin highlight at the
+   top-right - the round, white sibling of the graphite style;
+ - the disc stands on the wallpaper, so a long soft shadow runs diagonally
+   down-left, the disc swept along that diagonal and fading out;
+ - a thin dark line glyph (about 2.4 % of the disc's diameter) lies in the saucer.
 
 style(svg_text, name, out_size) -> PIL RGBA, plus back()/upon()/mask().
 """
@@ -31,7 +33,7 @@ def _long_shadow(disc):
     """The disc swept down-left along the diagonal, fading with distance."""
     k2 = 2
     small = disc.reshape(S // k2, k2, S // k2, k2).mean(axis=(1, 3))
-    n = int(0.5 * S / k2)
+    n = int(0.6 * S / k2)
     acc = np.zeros_like(small)
     for k in range(1, n):
         np.maximum(acc, shift(small, -k, k) * (1 - k / n) ** 0.9, out=acc)
@@ -45,15 +47,16 @@ def _base(c: Canvas):
     # fade the long shadow out before the edges of the icon, so it never ends in a hard line
     border = np.minimum(np.minimum(XX, S - 1 - XX), np.minimum(YY, S - 1 - YY))
     fade = np.clip(border / (0.16 * S), 0, 1) ** 1.5
-    c.over(SHADOW, _long_shadow(disc) * 0.17 * fade * (1 - disc))
+    c.over(SHADOW, _long_shadow(disc) * 0.22 * fade * (1 - disc))
     c.over(SHADOW, blur(shift(disc, -0.006 * S, 0.008 * S), 0.012 * S) * 0.22 * (1 - disc))
-    h = dome(sd, 0.05 * S, 0.012 * S)
-    shade, spec, _ = light(h, L=LIGHT, power=20)
-    u = ((XX - DCX) - (YY - DCY)) / (2 * R)          # +1 towards the light, -1 away
-    col = 247 + 7 * np.clip(u, -1, 1) + shade * 45 + spec * 10
-    col = col - 10 * np.clip(-u, 0, 1) ** 2
-    edge = np.clip(1 - np.abs(sd - 0.002 * S) / (0.003 * S), 0, 1) * np.clip(-u + 0.2, 0, 1)
-    col = col * (1 - 0.12 * edge)
+    # height field: rounded outer edge, then a shallow parabolic saucer inside it
+    rim = 0.03 * S
+    h = dome(sd, 0.013 * S, 0.008 * S)
+    r = np.hypot(XX - DCX, YY - DCY) / (R - rim)
+    h = h - 0.075 * S * np.clip(1 - r ** 2, 0, 1) * cov(sd - rim * 0.3)
+    h = blur(h, 1.5)
+    shade, spec, _ = light(h, L=LIGHT, power=24)
+    col = 240 + shade * 115 + spec * 25
     c.over(np.repeat(np.clip(col, 0, 255)[..., None], 3, axis=2), disc)
     return disc
 
