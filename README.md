@@ -13,7 +13,7 @@
 | Графит: тёмная плитка, блюдце, выпуклый значок | `tools/iconstyle.py` | ![](preview/v1_overview.png) |
 | Noir: чёрная плита, значок вырезан насквозь | `tools/style_noir.py` | ![](preview/noir_v1.png) |
 | Стекло: прозрачное толстое стекло | `tools/style_glass.py` | ![](preview/glass_v1.png) |
-| Белый: белые круглые плитки, длинная тень | `tools/style_white.py` | ![](preview/white_v1.png) |
+| Белый: блюдце (бортик + углубление), в тёмной теме графитовое (`drawable-night`) | `tools/style_white.py` | ![](preview/white_v32.png) |
 
 Иконки для приложений владельца (12 нарисованы заново, `tools/make_glyphs.py`):
 

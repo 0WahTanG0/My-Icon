@@ -44,7 +44,7 @@ PACKS = {
                  module="style_noir"),
     "glass": dict(out="android/app/src/generated-glass", scale=0.6, launcher_bg="#E6E8EC",
                   module="style_glass"),
-    "white": dict(out="android/app/src/generated-white", scale=0.5, launcher_bg="#E6E7E9",
+    "white": dict(out="android/app/src/generated-white", scale=0.52, launcher_bg="#E6E7E9",
                   module="style_white"),
 }
 APP_ID = "com.myicon.graphite"
@@ -66,11 +66,11 @@ def _style_module(pack: str):
     return importlib.import_module(name)
 
 
-def render_icon(pack: str, name: str, size: int):
-    """One themed icon as a PIL RGBA image."""
+def render_icon(pack: str, name: str, size: int, night: bool = False):
+    """One themed icon as a PIL RGBA image (night: the dark-theme twin)."""
     mod = _style_module(pack)
     if mod is not None:
-        fn = next(iter(mod.STYLES.values()))[1]
+        fn = mod.NIGHT_STYLE if night else next(iter(mod.STYLES.values()))[1]
         return fn(glyph_svg(name), name, size)
     global _renderer
     if _renderer is None:
@@ -115,9 +115,14 @@ def save_png(img, path: Path):
         img.save(path, optimize=True)
 
 
+def has_night(pack: str) -> bool:
+    mod = _style_module(pack)
+    return bool(mod is not None and getattr(mod, "HAS_NIGHT", False))
+
+
 def _render_one(args):
-    pack, name, size, out_dir = args
-    save_png(render_icon(pack, name, size), Path(out_dir) / f"{name}.png")
+    pack, name, size, out_dir, night = args
+    save_png(render_icon(pack, name, size, night), Path(out_dir) / f"{name}.png")
     return name
 
 
@@ -189,18 +194,29 @@ def main():
     if args.limit:
         todo = todo[:args.limit]
 
-    # ---- icons
+    # ---- icons (styles with a dark-theme twin also fill drawable-night-nodpi:
+    # Android picks it by itself when the system theme is dark)
+    night = has_night(args.pack)
+    night_draw = res / "drawable-night-nodpi"
+    jobs = [(args.pack, n, args.size, str(draw), False) for n in todo]
+    if night:
+        night_draw.mkdir(parents=True, exist_ok=True)
+        jobs += [(args.pack, n, args.size, str(night_draw), True) for n in todo]
     with mp.Pool(args.jobs) as pool:
-        for i, _ in enumerate(pool.imap_unordered(
-                _render_one, [(args.pack, n, args.size, str(draw)) for n in todo], chunksize=4), 1):
-            if i % 50 == 0 or i == len(todo):
-                print(f"  rendered {i}/{len(todo)}", flush=True)
+        for i, _ in enumerate(pool.imap_unordered(_render_one, jobs, chunksize=4), 1):
+            if i % 50 == 0 or i == len(jobs):
+                print(f"  rendered {i}/{len(jobs)}", flush=True)
 
     # ---- iconback / iconupon / iconmask for apps without an icon
     back, upon, mask = frame_layers(args.pack, args.size)
     save_png(back, draw / "iconback.png")
     save_png(upon, draw / "iconupon.png")
     save_png(mask, draw / "iconmask.png")
+    if night:
+        mod = _style_module(args.pack)
+        save_png(mod.back(args.size, dark=True), night_draw / "iconback.png")
+        save_png(upon, night_draw / "iconupon.png")
+        save_png(mask, night_draw / "iconmask.png")
 
     # ---- appfilter.xml
     lawn_af = (LAWN / "appfilter.xml").read_text(encoding="utf-8")
@@ -258,7 +274,7 @@ def main():
 
     render_launcher_icon(args.pack, res)
 
-    total = sum(p.stat().st_size for p in draw.glob("*.png"))
+    total = sum(p.stat().st_size for p in res.glob("drawable*/*.png"))
     print(f"icons: {len(rendered)}, appfilter entries: {len(keep) + 1}, "
           f"png total: {total / 1e6:.1f} MB")
 
